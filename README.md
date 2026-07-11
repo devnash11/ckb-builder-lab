@@ -48,6 +48,27 @@ the simulation engine.
 - [src/challenges/types.ts](src/challenges/types.ts) provides initial challenge
   TypeScript contracts.
 
+## Week 2 Deliverables
+
+Week 2 implements the simulator engine and validation tests.
+
+- Next.js + React + TypeScript scaffold.
+- Framework-independent simulator engine in `src/simulator`.
+- Challenge evaluator in `src/challenges`.
+- Initial challenge content in `src/content`.
+- Vitest test coverage for simulator and challenge behavior.
+- [docs/week-2-final-evidence.md](docs/week-2-final-evidence.md) summarizes
+  the completed implementation and verification evidence.
+
+## Development Commands
+
+```bash
+npm install
+npm run typecheck
+npm test
+npm run build
+```
+
 ## Suggested Implementation Stack
 
 - Next.js
@@ -66,4 +87,3 @@ The Week 1 model is based on the CKB docs in this workspace:
 - `website/docs/tech-explanation/capacity.md`
 - `website/docs/tech-explanation/lock-script.md`
 - `website/docs/tech-explanation/type-script.mdx`
-
