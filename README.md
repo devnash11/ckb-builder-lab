@@ -60,6 +60,20 @@ Week 2 implements the simulator engine and validation tests.
 - [docs/week-2-final-evidence.md](docs/week-2-final-evidence.md) summarizes
   the completed implementation and verification evidence.
 
+## Week 3 Deliverables
+
+Week 3 implements the interactive simulator interface.
+
+- Three-pane simulator workspace.
+- Live/consumed Cell ledger.
+- Transaction builder with output Cell editor.
+- Witness controls for educational lock validation.
+- Transaction flow visualization.
+- Validation trace panel.
+- Apply/reset/draft controls.
+- [docs/week-3-final-evidence.md](docs/week-3-final-evidence.md) summarizes
+  the completed implementation and verification evidence.
+
 ## Development Commands
 
 ```bash
