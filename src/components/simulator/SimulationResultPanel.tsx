@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, CircleDashed, XCircle } from "lucide-react";
 import type { Cell, DraftCellOutput, SimulationResult } from "../../simulator";
 import { describeCell } from "./format";
 import { ValidationTrace } from "./ValidationTrace";
@@ -41,10 +41,10 @@ export function SimulationResultPanel({
     <section className="pane result-pane" aria-labelledby="result-title">
       <div className="pane-heading">
         <div>
-          <p className="eyebrow">Transaction Flow</p>
-          <h2 id="result-title">Result</h2>
+          <p className="eyebrow">Inspect</p>
+          <h2 id="result-title">Transaction result</h2>
         </div>
-        <span className={`status-pill ${statusClass}`}>
+        <span className={`status-pill ${statusClass}`} aria-live="polite">
           {result ? (result.ok ? "valid" : "failed") : "not run"}
         </span>
       </div>
@@ -69,8 +69,10 @@ export function SimulationResultPanel({
           <div className={`mini-cell validation-state ${statusClass}`}>
             {result?.ok ? (
               <CheckCircle2 size={18} aria-hidden="true" />
-            ) : (
+            ) : result ? (
               <XCircle size={18} aria-hidden="true" />
+            ) : (
+              <CircleDashed size={18} aria-hidden="true" />
             )}
             <strong>{result ? (result.ok ? "Passed" : "Failed") : "Pending"}</strong>
           </div>

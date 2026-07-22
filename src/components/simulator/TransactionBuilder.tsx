@@ -1,11 +1,4 @@
-import {
-  Eraser,
-  FilePlus2,
-  Play,
-  RotateCcw,
-  Save,
-  ShieldCheck,
-} from "lucide-react";
+import { FilePlus2, ShieldCheck } from "lucide-react";
 import type { DraftCellOutput, OwnerName, SimulationMode } from "../../simulator";
 import { estimateOccupiedCapacity } from "../../simulator";
 import {
@@ -15,6 +8,7 @@ import {
   type TypeOption,
   typeRuleFromOption,
 } from "./format";
+import { HelpTip } from "./HelpTip";
 
 type TransactionBuilderProps = {
   mode: SimulationMode;
@@ -22,17 +16,11 @@ type TransactionBuilderProps = {
   includeOutput: boolean;
   includeLock: boolean;
   witnessOwners: OwnerName[];
-  canApply: boolean;
-  applied: boolean;
   onModeChange: (mode: SimulationMode) => void;
   onOutputChange: (output: DraftCellOutput) => void;
   onIncludeOutputChange: (includeOutput: boolean) => void;
   onIncludeLockChange: (includeLock: boolean) => void;
   onWitnessToggle: (owner: OwnerName) => void;
-  onSimulate: () => void;
-  onApply: () => void;
-  onReset: () => void;
-  onClearDraft: () => void;
 };
 
 function selectedTypeOption(outputDraft: DraftCellOutput): TypeOption {
@@ -55,17 +43,11 @@ export function TransactionBuilder({
   includeOutput,
   includeLock,
   witnessOwners,
-  canApply,
-  applied,
   onModeChange,
   onOutputChange,
   onIncludeOutputChange,
   onIncludeLockChange,
   onWitnessToggle,
-  onSimulate,
-  onApply,
-  onReset,
-  onClearDraft,
 }: TransactionBuilderProps) {
   const occupiedCapacity = estimateOccupiedCapacity(outputDraft);
   const typeOption = selectedTypeOption(outputDraft);
@@ -74,13 +56,9 @@ export function TransactionBuilder({
     <section className="pane builder-pane" aria-labelledby="builder-title">
       <div className="pane-heading">
         <div>
-          <p className="eyebrow">Transaction Builder</p>
-          <h2 id="builder-title">Draft</h2>
+          <p className="eyebrow">Compose</p>
+          <h2 id="builder-title">Transaction draft</h2>
         </div>
-        <button className="icon-button" type="button" onClick={onReset}>
-          <RotateCcw size={17} aria-hidden="true" />
-          Reset
-        </button>
       </div>
 
       <div className="segmented-control" aria-label="Simulation mode">
@@ -100,7 +78,7 @@ export function TransactionBuilder({
         </button>
       </div>
 
-      <div className="callout">
+      <div className="mode-note">
         {mode === "transaction"
           ? "Transaction mode consumes selected live Cells and creates output Cells."
           : "Genesis mode is an educational shortcut for creating beginner Cells without inputs."}
@@ -110,6 +88,10 @@ export function TransactionBuilder({
         <legend>
           <ShieldCheck size={16} aria-hidden="true" />
           Witnesses
+          <HelpTip label="What is a witness?">
+            A witness proves that the current owner allows an input Cell to be
+            spent. This lab represents that proof with an owner name.
+          </HelpTip>
         </legend>
         <div className="checkbox-grid">
           {ownerOptions.map((owner) => (
@@ -130,6 +112,10 @@ export function TransactionBuilder({
         <legend>
           <FilePlus2 size={16} aria-hidden="true" />
           Output Cell
+          <HelpTip label="What is an output Cell?">
+            An output Cell is new state created by the transaction. It becomes live
+            after a valid result is applied.
+          </HelpTip>
         </legend>
         <label className="check-control output-toggle">
           <input
@@ -142,7 +128,13 @@ export function TransactionBuilder({
 
         <div className="editor-grid" aria-disabled={!includeOutput}>
           <label>
-            <span>Capacity</span>
+            <span className="field-label">
+              Capacity
+              <HelpTip label="What is capacity?">
+                Capacity is CKB value and storage space. A Cell needs enough CKBytes
+                to hold its scripts and data.
+              </HelpTip>
+            </span>
             <input
               type="number"
               min={0}
@@ -158,7 +150,13 @@ export function TransactionBuilder({
           </label>
 
           <label>
-            <span>Owner</span>
+            <span className="field-label">
+              Owner
+              <HelpTip label="What does owner mean?">
+                The output lock names who may spend this new Cell in a later
+                transaction.
+              </HelpTip>
+            </span>
             <select
               value={outputDraft.lock?.owner ?? "no-lock"}
               disabled={!includeOutput || !includeLock}
@@ -181,7 +179,13 @@ export function TransactionBuilder({
           </label>
 
           <label>
-            <span>Type Script</span>
+            <span className="field-label">
+              Type Script
+              <HelpTip label="What is a type script?">
+                A type script checks how Cell data may change, such as keeping data
+                fixed or changing a counter by one.
+              </HelpTip>
+            </span>
             <select
               value={typeOption}
               disabled={!includeOutput}
@@ -210,7 +214,13 @@ export function TransactionBuilder({
           </label>
 
           <label className="data-field">
-            <span>Data</span>
+            <span className="field-label">
+              Data
+              <HelpTip label="What is Cell data?">
+                Data is the application state stored inside the Cell. Its size uses
+                part of the Cell's capacity.
+              </HelpTip>
+            </span>
             <textarea
               rows={4}
               value={outputDraft.data}
@@ -233,26 +243,6 @@ export function TransactionBuilder({
           Lock script: {includeLock ? "Included" : "Missing"}
         </div>
       </fieldset>
-
-      <div className="action-row">
-        <button className="primary-button" type="button" onClick={onSimulate}>
-          <Play size={17} aria-hidden="true" />
-          Simulate
-        </button>
-        <button
-          className="icon-button"
-          type="button"
-          disabled={!canApply || applied}
-          onClick={onApply}
-        >
-          <Save size={17} aria-hidden="true" />
-          {applied ? "Applied" : "Apply"}
-        </button>
-        <button className="icon-button" type="button" onClick={onClearDraft}>
-          <Eraser size={17} aria-hidden="true" />
-          Clear Draft
-        </button>
-      </div>
     </section>
   );
 }

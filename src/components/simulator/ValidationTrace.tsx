@@ -1,5 +1,6 @@
 import { CheckCircle2, CircleAlert, Info, XCircle } from "lucide-react";
 import type { ValidationTraceEvent } from "../../simulator";
+import { HelpTip } from "./HelpTip";
 
 type ValidationTraceProps = {
   trace: ValidationTraceEvent[];
@@ -25,8 +26,17 @@ export function ValidationTrace({ trace }: ValidationTraceProps) {
   return (
     <section className="trace-section" aria-labelledby="trace-title">
       <div className="section-heading">
-        <p className="eyebrow">Validation</p>
-        <h3 id="trace-title">Trace</h3>
+        <div>
+          <p className="eyebrow">Validation</p>
+          <div className="heading-with-help">
+            <h3 id="trace-title">Rule trace</h3>
+            <HelpTip label="What is the rule trace?">
+              The trace lists each simulator check in order and explains why it
+              passed or failed.
+            </HelpTip>
+          </div>
+        </div>
+        {trace.length > 0 && <span>{trace.length} checks</span>}
       </div>
       {trace.length === 0 ? (
         <p className="empty-state">
