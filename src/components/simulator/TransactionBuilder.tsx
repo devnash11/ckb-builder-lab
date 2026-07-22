@@ -160,7 +160,7 @@ export function TransactionBuilder({
           <label>
             <span>Owner</span>
             <select
-              value={outputDraft.lock?.owner ?? "Alice"}
+              value={outputDraft.lock?.owner ?? "no-lock"}
               disabled={!includeOutput || !includeLock}
               onChange={(event) =>
                 onOutputChange({
@@ -169,6 +169,9 @@ export function TransactionBuilder({
                 })
               }
             >
+              <option value="no-lock" disabled>
+                No lock selected
+              </option>
               {ownerOptions.map((owner) => (
                 <option key={owner} value={owner}>
                   {owner}
@@ -225,6 +228,9 @@ export function TransactionBuilder({
         </div>
         <div className="type-note">
           Output type rule: {formatTypeRule(outputDraft.type)}
+        </div>
+        <div className={`type-note ${includeLock ? "lock-present" : "lock-missing"}`}>
+          Lock script: {includeLock ? "Included" : "Missing"}
         </div>
       </fieldset>
 

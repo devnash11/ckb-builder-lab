@@ -390,6 +390,16 @@ textarea:disabled {
   justify-content: flex-start;
 }
 
+.type-note.lock-present {
+  background: #e8f6ee;
+  color: #1f7a4f;
+}
+
+.type-note.lock-missing {
+  background: #fdeeee;
+  color: #a63b3b;
+}
+
 .action-row {
   display: grid;
   gap: 10px;

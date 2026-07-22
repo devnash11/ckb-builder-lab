@@ -134,6 +134,10 @@ The Week 3 UI should be verified with these scenarios:
 12. Confirm the transaction demonstrates ownership transfer from Alice to Bob.
 13. Reset the simulator and confirm the starter state returns.
 
+For the valid transaction scenario, the output Cell must include a lock script.
+If the trace shows `Missing lock`, check `Include lock` or press `Reset`, then
+run the simulation again.
+
 ## Week 3 Status
 
 Completed:
