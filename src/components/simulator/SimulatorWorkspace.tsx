@@ -1,8 +1,8 @@
 "use client";
 
 import {
+  ArrowRight,
   BookOpen,
-  Boxes,
   CheckCircle2,
   Eraser,
   GraduationCap,
@@ -35,11 +35,15 @@ import { simulateTransaction } from "../../simulator";
 import { CellLedger } from "./CellLedger";
 import { typeRuleFromOption } from "./format";
 import { GuidedTour } from "./GuidedTour";
+import type {
+  JourneyPrediction,
+  JourneyStageId,
+} from "./journey";
 import { LearningRail } from "./LearningRail";
 import { SimulationResultPanel } from "./SimulationResultPanel";
 import { TransactionBuilder } from "./TransactionBuilder";
 
-type MobileView = "mission" | "cells" | "build" | "result";
+type MobileView = "mission" | "build" | "result";
 
 type WorkspacePreset = {
   ledger: LedgerState;
@@ -139,6 +143,8 @@ export function SimulatorWorkspace() {
   const [mobileView, setMobileView] = useState<MobileView>("mission");
   const [progressLoaded, setProgressLoaded] = useState(false);
   const [tourRestartToken, setTourRestartToken] = useState(0);
+  const [journeyPrediction, setJourneyPrediction] =
+    useState<JourneyPrediction | null>(null);
 
   const cells = useMemo(
     () => Object.values(ledger.cells).sort((left, right) => left.id.localeCompare(right.id)),
@@ -184,6 +190,7 @@ export function SimulatorWorkspace() {
     setLastResult(null);
     setResultApplied(false);
     setChallengeEvaluation(null);
+    setJourneyPrediction(null);
   }
 
   function loadPreset(preset: WorkspacePreset) {
@@ -214,7 +221,14 @@ export function SimulatorWorkspace() {
     setActiveChallengeId(null);
     setRevealedHintCount(0);
     loadPreset(createSandboxPreset());
-    setMobileView("build");
+    showMobileView("build");
+  }
+
+  function showMobileView(view: MobileView) {
+    setMobileView(view);
+    window.requestAnimationFrame(() =>
+      window.scrollTo({ top: 0, behavior: "auto" }),
+    );
   }
 
   function setModeAndCleanSelection(nextMode: SimulationMode) {
@@ -284,7 +298,7 @@ export function SimulatorWorkspace() {
 
     setLastResult(result);
     setResultApplied(false);
-    setMobileView("result");
+    showMobileView("result");
 
     if (activeChallenge) {
       const evaluation = evaluateChallenge({
@@ -315,7 +329,7 @@ export function SimulatorWorkspace() {
     setSelectedInputIds([]);
     setLastResult((current) => current);
     setResultApplied(true);
-    setMobileView("cells");
+    showMobileView("build");
   }
 
   function reset() {
@@ -352,7 +366,39 @@ export function SimulatorWorkspace() {
     }
 
     activateChallenge(activeChallenge.nextChallengeId);
-    setMobileView("mission");
+    showMobileView("mission");
+  }
+
+  function focusBuilderStage(stageId: JourneyStageId) {
+    const hasError = (code: SimulationResult["errors"][number]["code"]) =>
+      lastResult?.errors.some((error) => error.code === code);
+    const selectorByStage: Record<JourneyStageId, string> = {
+      structure: hasError("NO_OUTPUTS")
+        ? "[data-editor-field='include-output']"
+        : "[data-editor-section='output']",
+      capacity: "[data-editor-field='capacity']",
+      lock: hasError("MISSING_LOCK")
+        ? "[data-editor-field='include-lock']"
+        : "[data-editor-section='lock']",
+      type: "[data-editor-field='type']",
+      commit: ".simulate-button",
+    };
+
+    setMobileView("build");
+    window.setTimeout(() => {
+      const section = document.querySelector<HTMLElement>(selectorByStage[stageId]);
+      const focusTarget = section?.matches("input, select, button, textarea")
+        ? section
+        : section?.querySelector<HTMLElement>("input:not(:disabled)") ??
+          section?.querySelector<HTMLElement>("select:not(:disabled)") ??
+          section?.querySelector<HTMLElement>("textarea:not(:disabled)") ??
+          section?.querySelector<HTMLElement>("button:not(:disabled)");
+
+      section?.scrollIntoView({ behavior: "smooth", block: "center" });
+      section?.classList.add("is-guided-fix");
+      focusTarget?.focus();
+      window.setTimeout(() => section?.classList.remove("is-guided-fix"), 1400);
+    }, 80);
   }
 
   return (
@@ -404,23 +450,15 @@ export function SimulatorWorkspace() {
         <button
           type="button"
           className={mobileView === "mission" ? "is-active" : ""}
-          onClick={() => setMobileView("mission")}
+          onClick={() => showMobileView("mission")}
         >
           <BookOpen size={17} aria-hidden="true" />
-          Mission
-        </button>
-        <button
-          type="button"
-          className={mobileView === "cells" ? "is-active" : ""}
-          onClick={() => setMobileView("cells")}
-        >
-          <Boxes size={17} aria-hidden="true" />
-          Cells
+          Learn
         </button>
         <button
           type="button"
           className={mobileView === "build" ? "is-active" : ""}
-          onClick={() => setMobileView("build")}
+          onClick={() => showMobileView("build")}
         >
           <SlidersHorizontal size={17} aria-hidden="true" />
           Build
@@ -428,10 +466,10 @@ export function SimulatorWorkspace() {
         <button
           type="button"
           className={mobileView === "result" ? "is-active" : ""}
-          onClick={() => setMobileView("result")}
+          onClick={() => showMobileView("result")}
         >
           <CheckCircle2 size={17} aria-hidden="true" />
-          Result
+          Review
         </button>
       </nav>
 
@@ -444,7 +482,7 @@ export function SimulatorWorkspace() {
           revealedHintCount={revealedHintCount}
           onSelectChallenge={(challengeId) => {
             activateChallenge(challengeId);
-            setMobileView("mission");
+            showMobileView("mission");
           }}
           onOpenSandbox={openSandbox}
           onRevealHint={() =>
@@ -454,74 +492,93 @@ export function SimulatorWorkspace() {
           }
           onContinue={continueToNextChallenge}
         />
-        <CellLedger
-          cells={cells}
-          selectedInputIds={selectedInputIds}
-          transactionMode={mode === "transaction"}
-          onToggleInput={toggleInput}
-        />
-        <TransactionBuilder
-          mode={mode}
-          outputDraft={outputDraft}
-          includeOutput={includeOutput}
-          includeLock={includeLock}
-          witnessOwners={witnessOwners}
-          onModeChange={setModeAndCleanSelection}
-          onOutputChange={updateOutputDraft}
-          onIncludeOutputChange={setOutputIncluded}
-          onIncludeLockChange={toggleLock}
-          onWitnessToggle={toggleWitness}
-        />
+        <div className="build-workspace">
+          <CellLedger
+            cells={cells}
+            selectedInputIds={selectedInputIds}
+            transactionMode={mode === "transaction"}
+            onToggleInput={toggleInput}
+          />
+          <TransactionBuilder
+            mode={mode}
+            outputDraft={outputDraft}
+            includeOutput={includeOutput}
+            includeLock={includeLock}
+            witnessOwners={witnessOwners}
+            onModeChange={setModeAndCleanSelection}
+            onOutputChange={updateOutputDraft}
+            onIncludeOutputChange={setOutputIncluded}
+            onIncludeLockChange={toggleLock}
+            onWitnessToggle={toggleWitness}
+          />
+        </div>
         <SimulationResultPanel
+          mode={mode}
           selectedInputs={selectedInputCells}
           outputDrafts={outputDrafts}
           result={lastResult}
+          prediction={journeyPrediction}
+          onPredictionChange={setJourneyPrediction}
+          onFixStage={focusBuilderStage}
         />
       </div>
 
       <footer className="command-dock" aria-label="Simulator actions">
-        <div className="draft-status">
-          <span className={`status-dot ${lastResult?.ok ? "success" : lastResult ? "error" : ""}`} />
-          <span>
-            <strong>{mode === "transaction" ? "Transaction" : "Genesis"}</strong>
-            <small>
-              {selectedInputIds.length} input / {outputDrafts.length} output
-            </small>
-          </span>
-        </div>
-        <div className="dock-actions">
+        {mobileView === "mission" ? (
           <button
-            className="dock-icon-button"
+            className="start-building-button"
             type="button"
-            onClick={clearDraft}
-            aria-label="Clear transaction draft"
-            title="Clear draft"
+            onClick={() => showMobileView("build")}
           >
-            <Eraser size={18} aria-hidden="true" />
+            Start building
+            <ArrowRight size={18} aria-hidden="true" />
           </button>
-          <button
-            className="dock-icon-button"
-            type="button"
-            onClick={reset}
-            aria-label="Reset current workspace"
-            title="Reset workspace"
-          >
-            <RotateCcw size={18} aria-hidden="true" />
-          </button>
-          <button className="simulate-button" type="button" onClick={simulate}>
-            <Play size={18} fill="currentColor" aria-hidden="true" />
-            Simulate
-          </button>
-          <button
-            className="apply-button"
-            type="button"
-            disabled={!lastResult?.ok || !lastResult.after || resultApplied}
-            onClick={applyResult}
-          >
-            <Save size={18} aria-hidden="true" />
-            {resultApplied ? "Applied" : "Apply"}
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className="draft-status">
+              <span className={`status-dot ${lastResult?.ok ? "success" : lastResult ? "error" : ""}`} />
+              <span>
+                <strong>{mode === "transaction" ? "Transaction" : "Genesis"}</strong>
+                <small>
+                  {selectedInputIds.length} input / {outputDrafts.length} output
+                </small>
+              </span>
+            </div>
+            <div className="dock-actions">
+              <button
+                className="dock-icon-button"
+                type="button"
+                onClick={clearDraft}
+                aria-label="Clear transaction draft"
+                title="Clear draft"
+              >
+                <Eraser size={18} aria-hidden="true" />
+              </button>
+              <button
+                className="dock-icon-button"
+                type="button"
+                onClick={reset}
+                aria-label="Reset current workspace"
+                title="Reset workspace"
+              >
+                <RotateCcw size={18} aria-hidden="true" />
+              </button>
+              <button className="simulate-button" type="button" onClick={simulate}>
+                <Play size={18} fill="currentColor" aria-hidden="true" />
+                Simulate
+              </button>
+              <button
+                className="apply-button"
+                type="button"
+                disabled={!lastResult?.ok || !lastResult.after || resultApplied}
+                onClick={applyResult}
+              >
+                <Save size={18} aria-hidden="true" />
+                {resultApplied ? "Applied" : "Apply"}
+              </button>
+            </div>
+          </>
+        )}
       </footer>
 
       <GuidedTour

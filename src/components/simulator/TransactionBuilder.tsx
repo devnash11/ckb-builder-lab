@@ -3,7 +3,6 @@ import type { DraftCellOutput, OwnerName, SimulationMode } from "../../simulator
 import { estimateOccupiedCapacity } from "../../simulator";
 import {
   formatCapacity,
-  formatTypeRule,
   ownerOptions,
   type TypeOption,
   typeRuleFromOption,
@@ -57,7 +56,7 @@ export function TransactionBuilder({
       <div className="pane-heading">
         <div>
           <p className="eyebrow">Compose</p>
-          <h2 id="builder-title">Transaction draft</h2>
+          <h2 id="builder-title">Build</h2>
         </div>
       </div>
 
@@ -78,37 +77,32 @@ export function TransactionBuilder({
         </button>
       </div>
 
-      <div className="mode-note">
-        {mode === "transaction"
-          ? "Transaction mode consumes selected live Cells and creates output Cells."
-          : "Genesis mode is an educational shortcut for creating beginner Cells without inputs."}
-      </div>
+      {mode === "transaction" && (
+        <fieldset className="control-group" data-editor-section="lock">
+          <legend>
+            <ShieldCheck size={16} aria-hidden="true" />
+            Witnesses
+            <HelpTip label="What is a witness?">
+              A witness proves that the current owner allows an input Cell to be
+              spent. This lab represents that proof with an owner name.
+            </HelpTip>
+          </legend>
+          <div className="checkbox-grid">
+            {ownerOptions.map((owner) => (
+              <label key={owner} className="check-control">
+                <input
+                  type="checkbox"
+                  checked={witnessOwners.includes(owner)}
+                  onChange={() => onWitnessToggle(owner)}
+                />
+                {owner}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
-      <fieldset className="control-group">
-        <legend>
-          <ShieldCheck size={16} aria-hidden="true" />
-          Witnesses
-          <HelpTip label="What is a witness?">
-            A witness proves that the current owner allows an input Cell to be
-            spent. This lab represents that proof with an owner name.
-          </HelpTip>
-        </legend>
-        <div className="checkbox-grid">
-          {ownerOptions.map((owner) => (
-            <label key={owner} className="check-control">
-              <input
-                type="checkbox"
-                checked={witnessOwners.includes(owner)}
-                disabled={mode === "educational-genesis"}
-                onChange={() => onWitnessToggle(owner)}
-              />
-              {owner}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="control-group">
+      <fieldset className="control-group" data-editor-section="output">
         <legend>
           <FilePlus2 size={16} aria-hidden="true" />
           Output Cell
@@ -119,6 +113,7 @@ export function TransactionBuilder({
         </legend>
         <label className="check-control output-toggle">
           <input
+            data-editor-field="include-output"
             type="checkbox"
             checked={includeOutput}
             onChange={(event) => onIncludeOutputChange(event.target.checked)}
@@ -136,6 +131,7 @@ export function TransactionBuilder({
               </HelpTip>
             </span>
             <input
+              data-editor-field="capacity"
               type="number"
               min={0}
               value={outputDraft.capacity}
@@ -187,6 +183,7 @@ export function TransactionBuilder({
               </HelpTip>
             </span>
             <select
+              data-editor-field="type"
               value={typeOption}
               disabled={!includeOutput}
               onChange={(event) =>
@@ -205,6 +202,7 @@ export function TransactionBuilder({
 
           <label className="check-control lock-toggle">
             <input
+              data-editor-field="include-lock"
               type="checkbox"
               checked={includeLock}
               disabled={!includeOutput}
@@ -222,7 +220,7 @@ export function TransactionBuilder({
               </HelpTip>
             </span>
             <textarea
-              rows={4}
+              rows={3}
               value={outputDraft.data}
               disabled={!includeOutput}
               onChange={(event) =>
@@ -236,12 +234,7 @@ export function TransactionBuilder({
           <span>Estimated occupied capacity</span>
           <strong>{formatCapacity(occupiedCapacity)}</strong>
         </div>
-        <div className="type-note">
-          Output type rule: {formatTypeRule(outputDraft.type)}
-        </div>
-        <div className={`type-note ${includeLock ? "lock-present" : "lock-missing"}`}>
-          Lock script: {includeLock ? "Included" : "Missing"}
-        </div>
+        {!includeLock && <div className="type-note lock-missing">Lock missing</div>}
       </fieldset>
     </section>
   );

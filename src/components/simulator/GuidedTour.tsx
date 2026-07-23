@@ -9,7 +9,7 @@ import {
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 
-type TourView = "mission" | "cells" | "build" | "result";
+type TourView = "mission" | "build" | "result";
 
 type TourStep = {
   title: string;
@@ -53,26 +53,18 @@ const tourSteps: TourStep[] = [
     placement: "right",
   },
   {
-    title: "See CKB state as Cells",
+    title: "Build with Cells",
     description:
-      "A live Cell can be used as a transaction input. After it is spent, it stays visible as consumed so you can follow the state change.",
-    selector: ".ledger-pane",
-    view: "cells",
-    placement: "bottom",
-  },
-  {
-    title: "Build the next state",
-    description:
-      "Choose inputs, provide the owner witness, then describe the output Cell. Capacity stores value and also pays for the Cell's data.",
-    selector: ".builder-pane",
+      "Choose a live input, provide its witness, and describe the replacement output Cell.",
+    selector: ".build-workspace",
     view: "build",
     placement: "right",
   },
   {
-    title: "Read the rule trace",
+    title: "Watch the Cell Journey",
     description:
-      "Simulation checks the transaction without changing the ledger. A failed run explains exactly which rule needs attention.",
-    selector: ".result-pane",
+      "Predict the result, then replay how a live input passes each rule, becomes consumed, and produces a new live output Cell.",
+    selector: ".journey-section",
     view: "result",
     placement: "left",
   },

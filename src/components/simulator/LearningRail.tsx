@@ -42,7 +42,7 @@ export function LearningRail({
       <div className="rail-heading">
         <div>
           <p className="eyebrow">Cell model</p>
-          <h2 id="learning-title">Learning path</h2>
+          <h2 id="learning-title">Lessons</h2>
         </div>
         <span className="progress-count">
           {completedChallengeIds.length}/{challenges.length}
@@ -67,7 +67,6 @@ export function LearningRail({
                 </span>
                 <span>
                   <strong>{challenge.title}</strong>
-                  <small>{challenge.concept}</small>
                 </span>
               </button>
             </li>
@@ -96,8 +95,14 @@ export function LearningRail({
             </div>
             <p className="lesson-prompt">{activeChallenge.prompt}</p>
 
-            <section className="criteria-section" aria-labelledby="criteria-title">
-              <h4 id="criteria-title">Success criteria</h4>
+            <details className="criteria-section">
+              <summary>
+                <span>Goals</span>
+                <small>
+                  {evaluation?.completedCriteria.length ?? 0}/
+                  {activeChallenge.successCriteria.length}
+                </small>
+              </summary>
               <ul className="criteria-list">
                 {activeChallenge.successCriteria.map((criterion) => {
                   const complete = evaluation?.completedCriteria.includes(criterion.id);
@@ -114,11 +119,11 @@ export function LearningRail({
                   );
                 })}
               </ul>
-            </section>
+            </details>
 
             <section className="hint-section" aria-labelledby="hint-title">
               <div className="hint-heading">
-                <h4 id="hint-title">Hints</h4>
+                <h4 id="hint-title">Need a hint?</h4>
                 {revealedHintCount < activeChallenge.hints.length && (
                   <button type="button" onClick={onRevealHint}>
                     <Lightbulb size={14} aria-hidden="true" />
@@ -126,14 +131,8 @@ export function LearningRail({
                   </button>
                 )}
               </div>
-              {revealedHintCount === 0 ? (
-                <p>Hints stay hidden until you need one.</p>
-              ) : (
-                <ol>
-                  {activeChallenge.hints.slice(0, revealedHintCount).map((hint) => (
-                    <li key={hint}>{hint}</li>
-                  ))}
-                </ol>
+              {revealedHintCount > 0 && (
+                <p>{activeChallenge.hints[revealedHintCount - 1]}</p>
               )}
             </section>
 
@@ -158,8 +157,7 @@ export function LearningRail({
             <FlaskConical size={20} aria-hidden="true" />
             <h3>Open sandbox</h3>
             <p>
-              Build freely with every simulator control. Results still use the same
-              deterministic Cell validation engine.
+              Build freely with every simulator control.
             </p>
           </div>
         )}
