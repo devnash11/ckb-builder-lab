@@ -405,10 +405,16 @@ export function SimulatorWorkspace() {
     <main className="lab-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">CKB</span>
+          <img
+            className="brand-mark"
+            src="/builder-lab-mark.svg"
+            alt=""
+            width={38}
+            height={38}
+          />
           <span>
             <strong>Builder Lab</strong>
-            <small>Cell model workbench</small>
+            <small>CKB learning workbench</small>
           </span>
         </div>
 

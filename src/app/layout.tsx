@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CKB Builder Lab",
-  description: "Interactive developer onboarding infrastructure for CKB.",
+  title: "Builder Lab | Learn CKB",
+  description: "Learn the CKB Cell Model through interactive challenges.",
+  icons: {
+    icon: "/builder-lab-mark.svg",
+    shortcut: "/builder-lab-mark.svg",
+  },
 };
 
 export default function RootLayout({
